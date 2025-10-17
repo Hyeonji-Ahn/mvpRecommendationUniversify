@@ -2,7 +2,5 @@
   "name": "suggest-fn",
   "private": true,
   "type": "module",
-  "dependencies": {
-    "@supabase/supabase-js": "2.45.4"
-  }
+  "dependencies": { "@supabase/supabase-js": "2.45.4" }
 }
