@@ -1,5 +1,4 @@
 import { createClient } from '@supabase/supabase-js';
-import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { embedNormalized } from '../lib/embeddings';
 
 const SUPABASE_URL = process.env.SUPABASE_URL!;
@@ -20,7 +19,7 @@ const jaccard = (A: string[] = [], B: string[] = []) => {
   return uni ? inter/uni : 0;
 };
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
   try {
     const { aStart, aEnd, tags, k = 5 } = req.body || {};
@@ -28,16 +27,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).send('Bad Request');
     }
 
-    // 1) Build query embedding
     const qv = await embedNormalized(`Interested in: ${tags.join(', ')}.`);
-
-    // 2) Fetch candidates from Supabase RPC
     const { data, error } = await supabase.rpc('recommend_raw', {
       p_a_start: aStart, p_a_end: aEnd, p_qvec: qv
     });
     if (error) throw error;
 
-    // 3) Score + diversify
     const rows = (data as any[]).map(r => {
       const tf = timeFit(aStart, aEnd, r.start_ts, r.end_ts);
       const pop = Math.log1p((r.attendees || []).length);
